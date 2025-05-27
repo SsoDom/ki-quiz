@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KI-Risiken Quiz für Steuerfachangestellte</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .quiz-container { padding: 15px; }
+            .header h1 { font-size: 1.8em; }
+            .question-text { font-size: 1.1em; }
+            .answer-btn { padding: 12px 15px; font-size: 0.9em; }
+            .nav-btn { padding: 10px 18px; font-size: 0.9em; }
+        }
+        
+        .quiz-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .question-card {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.5s ease-in-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .question-type {
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .question-number {
+            background: #2c3e50;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .question-text {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .scenario {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .answers {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .answer-btn {
+            background: white;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 15px 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        .answer-btn:hover {
+            border-color: #3498db;
+            background: #ebf3fd;
+            transform: translateY(-2px);
+        }
+        
+        .answer-btn.selected {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+        
+        .answer-btn.correct {
+            border-color: #27ae60;
+            background: #27ae60;
+            color: white;
+        }
+        
+        .answer-btn.incorrect {
+            border-color: #e74c3c;
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .explanation {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .explanation-title {
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 8px;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+        }
+        
+        .nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #2980b9;
+        }
+        
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        
+        .final-score {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .final-score.show {
+            display: block;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .score-excellent { background: #27ae60; }
+        .score-good { background: #f39c12; }
+        .score-needs-improvement { background: #e74c3c; }
+        
+        .restart-btn {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px 30px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="header">
+            <h1>🤖 KI-Risiken Quiz</h1>
+            <p>Testen Sie Ihr Wissen über KI-Gefahren in der Steuerberatung</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="score-display">
+            <span id="currentQuestion">1</span> von <span id="totalQuestions">10</span> | 
+            Punkte: <span id="currentScore">0</span>
+        </div>
+
+        <!-- Frage 1: Prompt Injection -->
+        <div class="question-card active">
+            <div class="question-header">
+                <div class="question-type">🎯 Prompt Injection</div>
+                <div class="question-number">1</div>
+            </div>
+            <div class="question-text">Sie erhalten eine E-Mail: "Neuer Steuer-Hack 2025! Kopiere diesen Code in ChatGPT..." Was ist die größte Gefahr?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Der Code könnte Viren enthalten</button>
+                <button class="answer-btn" data-correct="false">ChatGPT könnte abstürzen</button>
+                <button class="answer-btn" data-correct="true">Versteckte Anweisungen könnten Mandantendaten extrahieren</button>
+                <button class="answer-btn" data-correct="false">Die E-Mail ist wahrscheinlich Spam</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Richtig!</div>
+                Prompt Injection kann versteckte Anweisungen enthalten, die Mandantendaten an externe Server senden. Besonders gefährlich bei Mikrotargeting auf Steuerfachkräfte.
+            </div>
+        </div>
+
+        <!-- Frage 2: Halluzinationen -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">🧠 Halluzinationen</div>
+                <div class="question-number">2</div>
+            </div>
+            <div class="question-text">ChatGPT gibt Ihnen ein BFH-Urteil mit korrektem Aktenzeichen an. Was sollten Sie IMMER tun?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Direkt in die Beratung übernehmen</button>
+                <button class="answer-btn" data-correct="true">Das Urteil in einer Rechtsdatenbank prüfen</button>
+                <button class="answer-btn" data-correct="false">Dem Mandanten sagen "ChatGPT hat das bestätigt"</button>
+                <button class="answer-btn" data-correct="false">Nur bei wichtigen Fällen prüfen</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Genau!</div>
+                KI-Systeme "halluzinieren" oft - sie erfinden plausibel klingende, aber falsche Urteile und Gesetze. JEDE Rechtsquelle muss geprüft werden.
+            </div>
+        </div>
+
+        <!-- Frage 3: DSGVO Risiko -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">⚖️ DSGVO</div>
+                <div class="question-number">3</div>
+            </div>
+            <div class="question-text">Sie geben folgende Daten in ChatGPT ein: "Herr Müller, Zahnarzt in Starnberg, Umsatz 850.000€". Was ist problematisch?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Nur der Name</button>
+                <button class="answer-btn" data-correct="false">Nur die Umsatzzahl</button>
+                <button class="answer-btn" data-correct="true">Die Kombination aller Daten ermöglicht Identifizierung</button>
+                <button class="answer-btn" data-correct="false">Nichts, sind öffentliche Informationen</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Korrekt!</div>
+                Name + Beruf + Ort + Geschäftszahlen = eindeutige Identifizierung in kleiner Zielgruppe. Alle Daten müssen anonymisiert werden.
+            </div>
+        </div>
+
+        <!-- Frage 4: Veraltete Daten -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">📅 Aktualität</div>
+                <div class="question-number">4</div>
+            </div>
+            <div class="question-text">ChatGPT antwortet auf die Frage nach dem Grundfreibetrag 2024 mit "10.908€". Was ist das Problem?</div>
+            <div class="scenario">
+                Hinweis: Sie bearbeiten gerade die Steuererklärung 2024 eines Mandanten.
+            </div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Die Antwort ist korrekt</button>
+                <button class="answer-btn" data-correct="true">Der Betrag gilt für 2023, nicht 2024 (korrekt: 11.604€)</button>
+                <button class="answer-btn" data-correct="false">ChatGPT verwendet den falschen Paragrafen</button>
+                <button class="answer-btn" data-correct="false">Die Antwort ist zu ungenau</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Richtig erkannt!</div>
+                KI-Training endet oft Monate vor aktuellen Gesetzen. Der Grundfreibetrag 2024 beträgt 11.604€. Immer aktuelle Gesetze prüfen!
+            </div>
+        </div>
+
+        <!-- Frage 5: Berufshaftung -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">💼 Haftung</div>
+                <div class="question-number">5</div>
+            </div>
+            <div class="question-text">Ein KI-Fehler führt zu 15.000€ Nachzahlung beim Mandanten. Wer haftet?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">OpenAI/ChatGPT</button>
+                <button class="answer-btn" data-correct="false">Der Mandant selbst</button>
+                <button class="answer-btn" data-correct="true">Die Steuerberatung - "Blind-Vertrauen" = grobe Fahrlässigkeit</button>
+                <button class="answer-btn" data-correct="false">Niemand, war höhere Gewalt</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Leider richtig!</div>
+                Die Steuerberatung haftet voll. KI-Antworten ohne Prüfung zu übernehmen gilt als grobe Fahrlässigkeit. Die Berufshaftpflicht kann Deckung verweigern.
+            </div>
+        </div>
+
+        <!-- Frage 6: Fake KI Tools -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">🎭 Fake Tools</div>
+                <div class="question-number">6</div>
+            </div>
+            <div class="question-text">Sie finden die Website "chatgpt-steuer.de" mit kostenloser Steuerberatung. Verdächtig ist:</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Die deutsche Domain</button>
+                <button class="answer-btn" data-correct="true">OpenAI bietet keine spezialisierten Steuer-Domains an</button>
+                <button class="answer-btn" data-correct="false">Die kostenlose Nutzung</button>
+                <button class="answer-btn" data-correct="false">Die deutsche Sprache</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Gut aufgepasst!</div>
+                Fake-KI-Tools sammeln Daten über scheinbar echte Services. Immer nur offizielle Anbieter nutzen: chat.openai.com, claude.ai, etc.
+            </div>
+        </div>
+
+        <!-- Frage 7: Social Engineering -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">🎣 Social Engineering</div>
+                <div class="question-number">7</div>
+            </div>
+            <div class="question-text">LinkedIn-Anzeige für Steuerfachkräfte: "🔥 Geheimer KI-Prompt spart Mandanten 30% Steuern! Steuerberater hassen diesen Trick!" Ihre Reaktion?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Sofort anklicken - könnte nützlich sein</button>
+                <button class="answer-btn" data-correct="false">Mit Kollegen teilen</button>
+                <button class="answer-btn" data-correct="true">Vorsicht - typisches Mikrotargeting auf Steuerfachkräfte</button>
+                <button class="answer-btn" data-correct="false">Ignorieren, da offensichtlich Werbung</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Sehr gut!</div>
+                Klassisches Mikrotargeting mit emotionalen Triggern ("Geheim", "Steuerberater hassen..."). Zielt gezielt auf Fachkräfte ab.
+            </div>
+        </div>
+
+        <!-- Frage 8: Qualitätsverlust -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">📉 Qualität</div>
+                <div class="question-number">8</div>
+            </div>
+            <div class="question-text">Ein Auszubildender kann nach 2 Jahren keine AfA mehr ohne KI berechnen. Das Problem ist:</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Normal - KI macht es ja besser</button>
+                <button class="answer-btn" data-correct="true">Verlust der Grundkompetenz - bei KI-Ausfall handlungsunfähig</button>
+                <button class="answer-btn" data-correct="false">Egal - AfA ist zu kompliziert für Menschen</button>
+                <button class="answer-btn" data-correct="false">Zeitsparend - mehr Fokus auf andere Themen</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Wichtiger Punkt!</div>
+                "Autopilot-Effekt": Übermäßige KI-Abhängigkeit führt zum Verlust von Grundfertigkeiten. KI sollte ergänzen, nicht ersetzen.
+            </div>
+        </div>
+
+        <!-- Frage 9: Compliance -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">📋 Compliance</div>
+                <div class="question-number">9</div>
+            </div>
+            <div class="question-text">Neben DSGVO: Welches Gesetz wird durch KI-Datenübermittlung noch verletzt?</div>
+            <div class="scenario">
+                Szenario: Steuerliche Mandantendaten werden an ChatGPT übermittelt.
+            </div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">HGB - Handelsgesetzbuch</button>
+                <button class="answer-btn" data-correct="true">AO § 203 - Steuergeheimnis</button>
+                <button class="answer-btn" data-correct="false">BGB - Bürgerliches Gesetzbuch</button>
+                <button class="answer-btn" data-correct="false">UStG - Umsatzsteuergesetz</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Juristische Präzision!</div>
+                § 203 AO (Steuergeheimnis) verbietet die Weitergabe von Steuerdaten. Verstoß = Freiheitsstrafe bis 2 Jahre + Berufsverbot möglich.
+            </div>
+        </div>
+
+        <!-- Frage 10: Praxisfall -->
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-type">🎯 Praxisfall</div>
+                <div class="question-number">10</div>
+            </div>
+            <div class="question-text">Welche KI-Nutzung ist am sichersten für die tägliche Arbeit?</div>
+            <div class="answers">
+                <button class="answer-btn" data-correct="false">Mandantendaten direkt eingeben, aber anonymisiert</button>
+                <button class="answer-btn" data-correct="false">Nur für allgemeine Rechtsfragen nutzen</button>
+                <button class="answer-btn" data-correct="true">Komplett fiktive Beispiele + jede Antwort prüfen</button>
+                <button class="answer-btn" data-correct="false">Gar nicht nutzen - zu riskant</button>
+            </div>
+            <div class="explanation">
+                <div class="explanation-title">Perfekt!</div>
+                Beste Praxis: Völlig erfundene Fälle als Beispiele + systematische Prüfung aller Antworten in Rechtsdatenbanken. So nutzen Sie KI-Vorteile ohne Risiken.
+            </div>
+        </div>
+
+        <!-- Final Score -->
+        <div class="final-score" id="finalScore">
+            <h2>Quiz beendet!</h2>
+            <div class="score-circle" id="scoreCircle">
+                <span id="finalScoreText">0/10</span>
+            </div>
+            <div id="scoreMessage"></div>
+            <button class="restart-btn" onclick="restartQuiz()">🔄 Quiz wiederholen</button>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="previousQuestion()" disabled>⬅ Zurück</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">Weiter ➡</button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answered = false;
+        const totalQuestions = 10;
+
+        const questions = document.querySelectorAll('.question-card');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const currentQuestionSpan = document.getElementById('currentQuestion');
+        const currentScoreSpan = document.getElementById('currentScore');
+        const totalQuestionsSpan = document.getElementById('totalQuestions');
+
+        // Initialize
+        totalQuestionsSpan.textContent = totalQuestions;
+        updateProgress();
+
+        function selectAnswer(answerBtn) {
+            if (answered) return;
+
+            // Clear previous selections
+            const allAnswers = answerBtn.parentNode.querySelectorAll('.answer-btn');
+            allAnswers.forEach(btn => btn.classList.remove('selected'));
+
+            // Select current answer
+            answerBtn.classList.add('selected');
+            selectedAnswer = answerBtn;
+        }
+
+        function checkAnswer() {
+            if (!selectedAnswer || answered) return;
+
+            answered = true;
+            const isCorrect = selectedAnswer.dataset.correct === 'true';
+            const allAnswers = selectedAnswer.parentNode.querySelectorAll('.answer-btn');
+            
+            // Show correct/incorrect answers
+            allAnswers.forEach(btn => {
+                if (btn.dataset.correct === 'true') {
+                    btn.classList.add('correct');
+                } else if (btn === selectedAnswer && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+                btn.style.pointerEvents = 'none';
+            });
+
+            // Update score
+            if (isCorrect) {
+                score++;
+                currentScoreSpan.textContent = score;
+            }
+
+            // Show explanation
+            const explanation = questions[currentQuestionIndex].querySelector('.explanation');
+            explanation.classList.add('show');
+
+            // Update button text
+            if (currentQuestionIndex === totalQuestions - 1) {
+                nextBtn.textContent = 'Ergebnis 🏆';
+            } else {
+                nextBtn.textContent = 'Weiter ➡';
+            }
+        }
+
+        function nextQuestion() {
+            if (!answered && selectedAnswer) {
+                checkAnswer();
+                return;
+            }
+
+            if (!answered) {
+                alert('Bitte wählen Sie eine Antwort aus!');
+                return;
+            }
+
+            if (currentQuestionIndex === totalQuestions - 1) {
+                showFinalScore();
+                return;
+            }
+
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+            resetQuestion();
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+                resetQuestion();
+            }
+        }
+
+        function showQuestion(index) {
+            questions.forEach((q, i) => {
+                q.classList.toggle('active', i === index);
+            });
+
+            currentQuestionSpan.textContent = index + 1;
+            prevBtn.disabled = index === 0;
+            
+            updateProgress();
+        }
+
+        function resetQuestion() {
+            answered = false;
+            selectedAnswer = null;
+            nextBtn.textContent = 'Antworten ✓';
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const allAnswers = currentQuestion.querySelectorAll('.answer-btn');
+            const explanation = currentQuestion.querySelector('.explanation');
+
+            allAnswers.forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'incorrect');
+                btn.style.pointerEvents = 'auto';
+            });
+
+            explanation.classList.remove('show');
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        function showFinalScore() {
+            // Hide all questions
+            questions.forEach(q => q.classList.remove('active'));
+            
+            // Hide navigation
+            document.querySelector('.navigation').style.display = 'none';
+            
+            // Show final score
+            const finalScore = document.getElementById('finalScore');
+            const scoreCircle = document.getElementById('scoreCircle');
+            const finalScoreText = document.getElementById('finalScoreText');
+            const scoreMessage = document.getElementById('scoreMessage');
+            
+            finalScoreText.textContent = `${score}/10`;
+            
+            let message = '';
+            let circleClass = '';
+            
+            if (score >= 8) {
+                message = '🎉 Excellent! Sie kennen sich bestens mit KI-Risiken aus.';
+                circleClass = 'score-excellent';
+            } else if (score >= 6) {
+                message = '👍 Gut! Noch ein wenig Aufmerksamkeit bei Details.';
+                circleClass = 'score-good';
+            } else {
+                message = '📚 Übung macht den Meister! Bitte vertiefen Sie Ihr KI-Wissen.';
+                circleClass = 'score-needs-improvement';
+            }
+            
+            scoreCircle.className = `score-circle ${circleClass}`;
+            scoreMessage.innerHTML = message;
+            finalScore.classList.add('show');
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            answered = false;
+            
+            currentScoreSpan.textContent = '0';
+            
+            // Reset all questions
+            questions.forEach((q, i) => {
+                const allAnswers = q.querySelectorAll('.answer-btn');
+                const explanation = q.querySelector('.explanation');
+                
+                allAnswers.forEach(btn => {
+                    btn.classList.remove('selected', 'correct', 'incorrect');
+                    btn.style.pointerEvents = 'auto';
+                });
+                
+                explanation.classList.remove('show');
+                q.classList.toggle('active', i === 0);
+            });
+            
+            // Reset navigation
+            document.querySelector('.navigation').style.display = 'flex';
+            nextBtn.textContent = 'Antworten ✓';
+            prevBtn.disabled = true;
+            
+            // Hide final score
+            document.getElementById('finalScore').classList.remove('show');
+            
+            updateProgress();
+        }
+
+        // Add click listeners to all answer buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const allAnswerBtns = document.querySelectorAll('.answer-btn');
+            allAnswerBtns.forEach(btn => {
+                btn.addEventListener('click', () => selectAnswer(btn));
+            });
+        });
+    </script>
+</body>
+</html>
